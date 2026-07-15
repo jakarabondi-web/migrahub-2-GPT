@@ -66,20 +66,25 @@ instead.
 cp .env.example .env   # fill in AUTH_SECRET (openssl rand -base64 32)
 npm install             # also runs `prisma generate`
 npm run db:push          # creates the local SQLite database
-npm run db:seed          # seeds sample job postings
+npm run db:seed          # seeds sample jobs + demo community posts
 npm run dev
 ```
 
 `DATABASE_URL` points at a local SQLite file by default. Point it at
 Postgres for a real deployment — nothing in `prisma/schema.prisma` needs to
-change to make that switch.
+change to make that switch. Uploaded documents land in `uploads/<userId>/`
+on local disk; swap `lib/document-storage.ts` for S3/blob storage the same
+way.
 
 ## Status
 
-Real: auth (register/login/logout, route gating), onboarding (writes to the
-DB), My Journey (real case + add-case form), My Career (real jobs + match
-scoring + save), Settings (real profile).
+Real, backed by the DB: auth (register/login/logout, route gating),
+onboarding, My Journey (real case + add-case form), My Career (real jobs +
+deterministic match scoring + save), My Documents (real upload/download/
+delete), My Community (real posts, auth-gated posting), Settings.
 
-Still mock/static: My Documents (upload UI doesn't persist yet), My
-Assistant (canned answers — needs an LLM provider/API key), My Community.
-Not started: employer portal, billing, admin, real USCIS status polling.
+Still mock: My Assistant has canned answers — needs an LLM provider/API key
+to become real, deliberately deferred.
+
+Not started: employer portal, billing, admin, real USCIS status polling
+(cases are user-entered, not yet synced against a live USCIS source).
