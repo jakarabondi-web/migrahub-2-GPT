@@ -24,6 +24,7 @@ model User {
   profile     CandidateProfile?
   preferences Preferences?
   savedJobs   SavedJob[]
+  documents   Document[]
 }
 
 // A user's USCIS case. Onboarding creates the first one (skippable);
@@ -89,4 +90,20 @@ model SavedJob {
   job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@unique([userId, jobId])
+}
+
+// storagePath points into the local uploads/ dir for now. Swap for an S3
+// key + signed URL in production — the DB row shape doesn't need to change.
+model Document {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  category     String
+  mimeType     String
+  sizeBytes    Int
+  storagePath  String
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
