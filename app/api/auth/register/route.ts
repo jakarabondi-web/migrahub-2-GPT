@@ -11,6 +11,8 @@ export async function POST(request: Request) {
   const email = body?.email?.trim().toLowerCase();
   const password = body?.password;
   const country = body?.country?.trim();
+  const role = body?.role === "employer" ? "employer" : "candidate";
+  const companyName = body?.companyName?.trim();
 
   if (!firstName || !lastName || !email || !password) {
     return NextResponse.json(
@@ -20,6 +22,16 @@ export async function POST(request: Request) {
           code: "MISSING_FIELDS",
           message: "We need your name, email, and a password to create your account.",
         },
+      },
+      { status: 400 },
+    );
+  }
+
+  if (role === "employer" && !companyName) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: { code: "MISSING_COMPANY_NAME", message: "Please tell us your company's name." },
       },
       { status: 400 },
     );
@@ -59,7 +71,13 @@ export async function POST(request: Request) {
       name: `${firstName} ${lastName}`,
       email,
       passwordHash,
+      role,
       country: country || null,
+      // Employers don't go through the candidate onboarding wizard.
+      onboardingComplete: role === "employer",
+      ...(role === "employer" && companyName
+        ? { company: { create: { name: companyName } } }
+        : {}),
     },
   });
 

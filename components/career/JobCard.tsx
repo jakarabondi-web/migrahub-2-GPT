@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ButtonSecondary } from "@/components/ui/Button";
-import { MapPin, Bookmark, BookmarkCheck } from "lucide-react";
+import { ButtonPrimary } from "@/components/ui/Button";
+import { MapPin, Bookmark, BookmarkCheck, Check } from "lucide-react";
 
 export interface JobCardData {
   id: string;
@@ -16,6 +16,7 @@ export interface JobCardData {
   sponsorship: boolean;
   matchScore: number;
   saved: boolean;
+  applied: boolean;
 }
 
 function formatSalary(min: number, max: number) {
@@ -25,10 +26,13 @@ function formatSalary(min: number, max: number) {
 
 export function JobCard({ job }: { job: JobCardData }) {
   const [saved, setSaved] = useState(job.saved);
-  const [pending, setPending] = useState(false);
+  const [savePending, setSavePending] = useState(false);
+  const [applied, setApplied] = useState(job.applied);
+  const [applyPending, setApplyPending] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   async function toggleSave() {
-    setPending(true);
+    setSavePending(true);
     const next = !saved;
     setSaved(next); // optimistic
     try {
@@ -37,7 +41,22 @@ export function JobCard({ job }: { job: JobCardData }) {
     } catch {
       setSaved(!next); // revert on failure
     } finally {
-      setPending(false);
+      setSavePending(false);
+    }
+  }
+
+  async function apply() {
+    setApplyPending(true);
+    setApplyError(null);
+    try {
+      const response = await fetch(`/api/jobs/${job.id}/apply`, { method: "POST" });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error?.message ?? "Something went wrong.");
+      setApplied(true);
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setApplyPending(false);
     }
   }
 
@@ -56,6 +75,7 @@ export function JobCard({ job }: { job: JobCardData }) {
           </span>
           <span>{formatSalary(job.salaryMin, job.salaryMax)}</span>
         </div>
+        {applyError && <p className="mt-2 text-caption text-danger">{applyError}</p>}
       </div>
       <div className="flex items-center gap-3 sm:flex-col sm:items-end sm:gap-3">
         <span className="text-small font-semibold text-primary">{job.matchScore}% Match</span>
@@ -63,7 +83,7 @@ export function JobCard({ job }: { job: JobCardData }) {
           <button
             type="button"
             onClick={toggleSave}
-            disabled={pending}
+            disabled={savePending}
             aria-pressed={saved}
             aria-label={saved ? "Remove from saved jobs" : "Save job"}
             className="flex h-9 w-9 items-center justify-center rounded-button border border-border text-text-secondary transition-colors duration-150 hover:bg-background disabled:opacity-60"
@@ -74,7 +94,16 @@ export function JobCard({ job }: { job: JobCardData }) {
               <Bookmark className="h-4 w-4" aria-hidden="true" />
             )}
           </button>
-          <ButtonSecondary size="sm">View Details</ButtonSecondary>
+          {applied ? (
+            <span className="flex items-center gap-1.5 rounded-button border border-success/30 bg-success/10 px-4 py-2 text-small font-medium text-success">
+              <Check className="h-4 w-4" aria-hidden="true" />
+              Applied
+            </span>
+          ) : (
+            <ButtonPrimary size="sm" onClick={apply} loading={applyPending}>
+              Apply
+            </ButtonPrimary>
+          )}
         </div>
       </div>
     </Card>

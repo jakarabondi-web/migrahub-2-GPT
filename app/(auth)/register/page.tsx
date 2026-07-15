@@ -7,9 +7,13 @@ import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
 import { ButtonPrimary } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+
+type Role = "candidate" | "employer";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [role, setRole] = useState<Role>("candidate");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,6 +29,8 @@ export default function RegisterPage() {
       email: form.get("email"),
       password: form.get("password"),
       country: form.get("country"),
+      role,
+      companyName: form.get("companyName"),
     };
 
     const response = await fetch("/api/auth/register", {
@@ -53,7 +59,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/onboarding");
+    router.push(role === "employer" ? "/employer" : "/onboarding");
     router.refresh();
   }
 
@@ -70,6 +76,22 @@ export default function RegisterPage() {
         </span>
       }
     >
+      <div className="mb-5 flex gap-2 rounded-button border border-border bg-background p-1">
+        {(["candidate", "employer"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setRole(option)}
+            className={cn(
+              "flex-1 rounded-button py-2 text-small font-medium capitalize transition-colors duration-150",
+              role === option ? "bg-card text-primary shadow-sm" : "text-text-secondary",
+            )}
+          >
+            {option === "candidate" ? "I'm job seeking" : "I'm hiring"}
+          </button>
+        ))}
+      </div>
+
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
         {error && (
           <p role="alert" className="rounded-button bg-danger/10 px-4 py-3 text-small text-danger">
@@ -90,7 +112,11 @@ export default function RegisterPage() {
           helperText="Use at least 8 characters."
           required
         />
-        <Input label="Country" name="country" autoComplete="country-name" required />
+        {role === "candidate" ? (
+          <Input label="Country" name="country" autoComplete="country-name" required />
+        ) : (
+          <Input label="Company name" name="companyName" required />
+        )}
 
         <label className="flex items-start gap-2 text-small text-text-secondary">
           <input type="checkbox" name="terms" required className="mt-0.5 h-4 w-4 rounded border-border" />
@@ -106,7 +132,7 @@ export default function RegisterPage() {
         </label>
 
         <ButtonPrimary type="submit" loading={loading} className="w-full justify-center">
-          Create Account
+          {role === "employer" ? "Create Employer Account" : "Create Account"}
         </ButtonPrimary>
       </form>
     </AuthCard>

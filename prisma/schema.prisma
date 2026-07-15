@@ -9,11 +9,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// "candidate" (default) or "employer". Employers skip onboarding/case
+// tracking entirely and get routed into /employer instead of /dashboard.
 model User {
   id                 String   @id @default(cuid())
   name               String
   email              String   @unique
   passwordHash       String
+  role               String   @default("candidate")
   country            String?
   citizenship        String?
   immigrationGoal    String?
@@ -27,6 +30,8 @@ model User {
   documents   Document[]
   posts       CommunityPost[]
   replies     CommunityReply[]
+  company     Company?
+  applications Application[]
 }
 
 // A user's USCIS case. Onboarding creates the first one (skippable);
@@ -71,6 +76,7 @@ model Job {
   id           String   @id @default(cuid())
   title        String
   company      String
+  companyId    String?
   location     String
   salaryMin    Int
   salaryMax    Int
@@ -79,7 +85,39 @@ model Job {
   industry     String
   createdAt    DateTime @default(now())
 
-  savedBy SavedJob[]
+  savedBy      SavedJob[]
+  applications Application[]
+  postedBy     Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+}
+
+// One row per registered employer. `company` is a free-text snapshot on
+// Job for seeded/legacy listings that predate a real Company relation.
+model Company {
+  id          String   @id @default(cuid())
+  ownerId     String   @unique
+  name        String
+  industry    String?
+  website     String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  jobs  Job[]
+}
+
+// Candidate applications to a job. Status drives the employer's
+// applicant-review workflow (PATCH /applications/:id/status in the spec).
+model Application {
+  id          String   @id @default(cuid())
+  jobId       String
+  candidateId String
+  status      String   @default("Applied")
+  createdAt   DateTime @default(now())
+
+  job       Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate User @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, candidateId])
 }
 
 // Join table for the "Save Job" action from the API spec (POST /jobs/:id/save).

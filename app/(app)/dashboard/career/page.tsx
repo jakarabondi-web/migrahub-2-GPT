@@ -12,7 +12,7 @@ export const metadata = { title: "My Career — MigraHub" };
 export default async function CareerPage() {
   const session = await getServerSession(authOptions);
 
-  const [jobs, profile, savedJobs] = await Promise.all([
+  const [jobs, profile, savedJobs, applications] = await Promise.all([
     prisma.job.findMany({ orderBy: { createdAt: "asc" } }),
     session?.user?.id
       ? prisma.candidateProfile.findUnique({ where: { userId: session.user.id } })
@@ -20,9 +20,13 @@ export default async function CareerPage() {
     session?.user?.id
       ? prisma.savedJob.findMany({ where: { userId: session.user.id }, select: { jobId: true } })
       : Promise.resolve([]),
+    session?.user?.id
+      ? prisma.application.findMany({ where: { candidateId: session.user.id }, select: { jobId: true } })
+      : Promise.resolve([]),
   ]);
 
   const savedIds = new Set(savedJobs.map((s) => s.jobId));
+  const appliedIds = new Set(applications.map((a) => a.jobId));
   const ranked = jobs
     .map((job) => ({
       id: job.id,
@@ -34,6 +38,7 @@ export default async function CareerPage() {
       sponsorship: job.sponsorship,
       matchScore: computeMatchScore(job, profile),
       saved: savedIds.has(job.id),
+      applied: appliedIds.has(job.id),
     }))
     .sort((a, b) => b.matchScore - a.matchScore);
 
