@@ -1,11 +1,62 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
 import { ButtonPrimary } from "@/components/ui/Button";
 
-export const metadata = { title: "Create Account — MigraHub" };
-
 export default function RegisterPage() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const form = new FormData(event.currentTarget);
+    const payload = {
+      firstName: form.get("firstName"),
+      lastName: form.get("lastName"),
+      email: form.get("email"),
+      password: form.get("password"),
+      country: form.get("country"),
+    };
+
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+
+    if (!result.success) {
+      setError(result.error.message);
+      setLoading(false);
+      return;
+    }
+
+    const signInResult = await signIn("credentials", {
+      email: payload.email,
+      password: payload.password,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (signInResult?.error) {
+      router.push("/login");
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+  }
+
   return (
     <AuthCard
       title="Create your account"
@@ -19,7 +70,12 @@ export default function RegisterPage() {
         </span>
       }
     >
-      <form className="flex flex-col gap-5">
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        {error && (
+          <p role="alert" className="rounded-button bg-danger/10 px-4 py-3 text-small text-danger">
+            {error}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <Input label="First Name" name="firstName" autoComplete="given-name" required />
           <Input label="Last Name" name="lastName" autoComplete="family-name" required />
@@ -30,6 +86,7 @@ export default function RegisterPage() {
           type="password"
           name="password"
           autoComplete="new-password"
+          minLength={8}
           helperText="Use at least 8 characters."
           required
         />
@@ -48,7 +105,7 @@ export default function RegisterPage() {
           .
         </label>
 
-        <ButtonPrimary type="submit" className="w-full justify-center">
+        <ButtonPrimary type="submit" loading={loading} className="w-full justify-center">
           Create Account
         </ButtonPrimary>
       </form>

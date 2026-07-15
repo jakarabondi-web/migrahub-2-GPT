@@ -1,0 +1,19 @@
+// SQLite for local development. Point DATABASE_URL at Postgres in production —
+// nothing else in this schema needs to change to make that switch.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  country      String?
+  createdAt    DateTime @default(now())
+}

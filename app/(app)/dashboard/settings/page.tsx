@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -6,7 +8,10 @@ import { ButtonPrimary, ButtonSecondary } from "@/components/ui/Button";
 
 export const metadata = { title: "Settings — MigraHub" };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await getServerSession(authOptions);
+  const [firstName = "", lastName = ""] = (session?.user?.name ?? "").split(" ");
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <PageHeader title="Settings" />
@@ -17,10 +22,10 @@ export default function SettingsPage() {
         </CardHeader>
         <form className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input label="First Name" name="firstName" defaultValue="Sarah" />
-            <Input label="Last Name" name="lastName" defaultValue="Johnson" />
+            <Input label="First Name" name="firstName" defaultValue={firstName} />
+            <Input label="Last Name" name="lastName" defaultValue={lastName} />
           </div>
-          <Input label="Email" type="email" name="email" defaultValue="sarah@email.com" />
+          <Input label="Email" type="email" name="email" defaultValue={session?.user?.email ?? ""} />
           <div>
             <ButtonPrimary type="submit">Save Changes</ButtonPrimary>
           </div>

@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+
+// Response envelope follows the {success, data|error, message} contract
+// from the API architecture spec (Phase 10) so every endpoint reads the same.
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+  const firstName = body?.firstName?.trim();
+  const lastName = body?.lastName?.trim();
+  const email = body?.email?.trim().toLowerCase();
+  const password = body?.password;
+  const country = body?.country?.trim();
+
+  if (!firstName || !lastName || !email || !password) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "MISSING_FIELDS",
+          message: "We need your name, email, and a password to create your account.",
+        },
+      },
+      { status: 400 },
+    );
+  }
+
+  if (password.length < 8) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "WEAK_PASSWORD",
+          message: "Your password should be at least 8 characters.",
+        },
+      },
+      { status: 400 },
+    );
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "EMAIL_TAKEN",
+          message: "An account with that email already exists. Try signing in instead.",
+        },
+      },
+      { status: 409 },
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await prisma.user.create({
+    data: {
+      name: `${firstName} ${lastName}`,
+      email,
+      passwordHash,
+      country: country || null,
+    },
+  });
+
+  return NextResponse.json({
+    success: true,
+    message: "Account created. You can now sign in.",
+  });
+}

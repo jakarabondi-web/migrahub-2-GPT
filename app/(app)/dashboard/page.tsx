@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { JourneyProgress, type TimelineStep } from "@/components/dashboard/JourneyProgress";
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
@@ -14,10 +16,13 @@ const journeySteps: TimelineStep[] = [
   { label: "Green Card", status: "upcoming" },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+  const firstName = session?.user?.name?.split(" ")[0] ?? "there";
+
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <DashboardHeader name="Sarah" progress={72} nextMilestone="Interview" />
+      <DashboardHeader name={firstName} progress={72} nextMilestone="Interview" />
 
       <JourneyProgress steps={journeySteps} />
 
