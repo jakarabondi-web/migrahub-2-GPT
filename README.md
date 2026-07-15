@@ -87,16 +87,20 @@ way.
 
 ## Status
 
-Real, backed by the DB: auth (register/login/logout, route gating, two
-account types), onboarding, My Journey (real case + add-case form), My
-Career (real jobs + deterministic match scoring + save + apply), My
-Documents (real upload/download/delete), My Community (real posts,
-auth-gated posting), Settings, and the employer portal (company profile,
-job posting, applicant pipeline with status workflow).
+Real, backed by the DB: auth (register/login/logout, route gating, three
+account types — candidate/employer/admin), onboarding, My Journey (real
+case + add-case form), My Career (real jobs + deterministic match scoring +
+save + apply), My Documents (real upload/download/delete), My Community
+(real posts, auth-gated posting), Settings, the employer portal (company
+profile, job posting, applicant pipeline with status workflow), and the
+admin portal (live platform stats, Users, Companies).
 
 Still mock: My Assistant has canned answers — needs an LLM provider/API key
 to become real, deliberately deferred.
 
-Not started: billing (needs a payment provider/API key — same deferral as
-the assistant), admin portal, real USCIS status polling (cases are
-user-entered, not yet synced against a live USCIS source).
+Not started (all deliberately deferred pending API keys/provider choices):
+billing/payments, real USCIS status polling (cases are user-entered, not
+yet synced against a live USCIS source). Also not built: admin
+Reports/Subscriptions/Feature Flags/System Health/Audit Logs (Subscriptions
+depends on billing; the rest don't need external APIs and are reasonable
+next targets).
