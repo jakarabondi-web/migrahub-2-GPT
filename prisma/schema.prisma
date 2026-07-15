@@ -10,10 +10,55 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  country      String?
-  createdAt    DateTime @default(now())
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  passwordHash       String
+  country            String?
+  citizenship        String?
+  immigrationGoal    String?
+  onboardingComplete Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  cases       ImmigrationCase[]
+  profile     CandidateProfile?
+  preferences Preferences?
+}
+
+// A user's USCIS case. Onboarding creates the first one (skippable);
+// My Journey and the dashboard read from here once it exists.
+model ImmigrationCase {
+  id             String   @id @default(cuid())
+  userId         String
+  visaType       String
+  receiptNumber  String?
+  priorityDate   DateTime?
+  status         String   @default("Case Received")
+  progress       Int      @default(10)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Career-side onboarding answers, read by My Career for job matching.
+model CandidateProfile {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  jobTitle         String?
+  experienceYears  Int?
+  desiredLocation  String?
+  needsSponsorship Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Preferences {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  emailNotifications  Boolean @default(true)
+  smsNotifications    Boolean @default(false)
+  pushNotifications   Boolean @default(true)
+  theme               String  @default("system")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
