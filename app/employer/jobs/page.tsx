@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
+import { isFlagEnabled } from "@/lib/feature-flags";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { NewJobForm } from "@/components/employer/NewJobForm";
 import { EmployerJobCard } from "@/components/employer/EmployerJobCard";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EmployerJobsPage() {
   const session = await getServerSession(authOptions);
+  const postingEnabled = await isFlagEnabled("employer_job_posting");
 
   const company = session?.user?.id
     ? await prisma.company.findUnique({ where: { ownerId: session.user.id } })
@@ -28,7 +30,13 @@ export default async function EmployerJobsPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <PageHeader title="Jobs" subtitle="Roles you've posted to the MigraHub marketplace." />
-      <NewJobForm />
+      {postingEnabled ? (
+        <NewJobForm />
+      ) : (
+        <p className="rounded-button border border-torch/30 bg-torch/5 px-4 py-3 text-small text-text-secondary">
+          Job posting is temporarily paused by an administrator. Your existing listings are still live.
+        </p>
+      )}
       {jobs.length === 0 ? (
         <EmptyState
           icon={<Briefcase className="h-6 w-6" aria-hidden="true" />}

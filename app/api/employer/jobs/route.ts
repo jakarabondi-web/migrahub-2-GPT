@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit-log";
+import { isFlagEnabled } from "@/lib/feature-flags";
 
 async function requireCompany(userId: string) {
   return prisma.company.findUnique({ where: { ownerId: userId } });
@@ -35,6 +37,13 @@ export async function POST(request: Request) {
   if (!session?.user?.id || session.user.role !== "employer") {
     return NextResponse.json(
       { success: false, error: { code: "FORBIDDEN", message: "Employer account required." } },
+      { status: 403 },
+    );
+  }
+
+  if (!(await isFlagEnabled("employer_job_posting"))) {
+    return NextResponse.json(
+      { success: false, error: { code: "FEATURE_DISABLED", message: "Job posting is temporarily paused." } },
       { status: 403 },
     );
   }
@@ -85,6 +94,15 @@ export async function POST(request: Request) {
       remote: !!body?.remote,
       industry: body?.industry?.trim() || company.industry || "Other",
     },
+  });
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    action: "job.posted",
+    targetType: "Job",
+    targetId: job.id,
+    metadata: { title: job.title, company: company.name },
   });
 
   return NextResponse.json({ success: true, data: { job }, message: "Job posted." });

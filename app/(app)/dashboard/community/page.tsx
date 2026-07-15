@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isFlagEnabled } from "@/lib/feature-flags";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { CommunityPostCard } from "@/components/community/CommunityPostCard";
 import { NewPostForm } from "@/components/community/NewPostForm";
@@ -9,6 +10,21 @@ export const metadata = { title: "My Community — MigraHub" };
 export const dynamic = "force-dynamic";
 
 export default async function CommunityPage() {
+  const communityEnabled = await isFlagEnabled("community");
+
+  if (!communityEnabled) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <PageHeader title="My Community" />
+        <EmptyState
+          icon={<Users className="h-6 w-6" aria-hidden="true" />}
+          title="Community is temporarily unavailable."
+          body="An administrator has turned this off for now. Check back soon."
+        />
+      </div>
+    );
+  }
+
   const posts = await prisma.communityPost.findMany({
     orderBy: { createdAt: "desc" },
     include: {

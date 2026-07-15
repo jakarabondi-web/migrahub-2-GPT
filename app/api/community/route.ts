@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
+import { isFlagEnabled } from "@/lib/feature-flags";
 
 export async function GET() {
   const posts = await prisma.communityPost.findMany({
@@ -21,6 +22,13 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { success: false, error: { code: "UNAUTHENTICATED", message: "Please sign in first." } },
       { status: 401 },
+    );
+  }
+
+  if (!(await isFlagEnabled("community"))) {
+    return NextResponse.json(
+      { success: false, error: { code: "FEATURE_DISABLED", message: "Community posting is temporarily unavailable." } },
+      { status: 403 },
     );
   }
 

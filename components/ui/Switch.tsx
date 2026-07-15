@@ -5,11 +5,14 @@ import { cn } from "@/lib/utils";
 
 export function Switch({
   label,
+  ariaLabel,
   defaultChecked = false,
   checked,
   onCheckedChange,
 }: {
   label: string;
+  /** Use when `label` is empty because the name is already shown elsewhere (e.g. a Card title). */
+  ariaLabel?: string;
   defaultChecked?: boolean;
   /** Pass for controlled usage; omit to let the switch manage its own state. */
   checked?: boolean;
@@ -34,6 +37,7 @@ export function Switch({
         type="button"
         role="switch"
         aria-checked={value}
+        aria-label={label ? undefined : ariaLabel}
         onClick={toggle}
         className={cn(
           "relative h-6 w-11 shrink-0 rounded-pill transition-colors duration-150",

@@ -170,3 +170,25 @@ model CommunityReply {
   post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
+
+// actorId is nullable so a failed-login or pre-account event can still be
+// logged; actorEmail is a denormalized snapshot so the row still reads
+// sensibly if the actor account is later deleted.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+}
+
+model FeatureFlag {
+  key         String   @id
+  name        String
+  description String
+  enabled     Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}

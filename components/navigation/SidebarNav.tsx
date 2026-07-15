@@ -14,17 +14,19 @@ import {
 import { cn } from "@/lib/utils";
 import { LibertyMark } from "@/components/ui/LibertyMark";
 
-const items = [
+const baseItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/journey", label: "My Journey", icon: Compass },
   { href: "/dashboard/career", label: "My Career", icon: Briefcase },
   { href: "/dashboard/documents", label: "My Documents", icon: FolderLock },
   { href: "/dashboard/assistant", label: "My Assistant", icon: Brain },
-  { href: "/dashboard/community", label: "My Community", icon: Users },
 ];
 
-export function SidebarNav() {
+const communityItem = { href: "/dashboard/community", label: "My Community", icon: Users };
+
+export function SidebarNav({ communityEnabled = true }: { communityEnabled?: boolean }) {
   const pathname = usePathname();
+  const items = communityEnabled ? [...baseItems, communityItem] : baseItems;
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">

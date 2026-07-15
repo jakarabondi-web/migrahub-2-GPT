@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit-log";
 
 const VALID_STATUSES = ["Applied", "Reviewing", "Interview", "Offer", "Rejected"];
 
@@ -40,6 +41,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const updated = await prisma.application.update({ where: { id }, data: { status } });
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    action: "application.status_changed",
+    targetType: "Application",
+    targetId: id,
+    metadata: { from: application.status, to: status },
+  });
 
   return NextResponse.json({
     success: true,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit-log";
 
 export async function PATCH(request: Request) {
   const session = await getServerSession(authOptions);
@@ -36,6 +37,15 @@ export async function PATCH(request: Request) {
       website: body?.website || null,
       description: body?.description || null,
     },
+  });
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    action: "company.updated",
+    targetType: "Company",
+    targetId: company.id,
+    metadata: { name: company.name },
   });
 
   return NextResponse.json({ success: true, data: { company }, message: "Company profile saved." });

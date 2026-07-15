@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit-log";
 
 // Response envelope follows the {success, data|error, message} contract
 // from the API architecture spec (Phase 10) so every endpoint reads the same.
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name: `${firstName} ${lastName}`,
       email,
@@ -79,6 +80,15 @@ export async function POST(request: Request) {
         ? { company: { create: { name: companyName } } }
         : {}),
     },
+  });
+
+  await logAudit({
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "account.created",
+    targetType: "User",
+    targetId: user.id,
+    metadata: { role },
   });
 
   return NextResponse.json({

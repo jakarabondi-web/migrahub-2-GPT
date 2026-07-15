@@ -15,6 +15,13 @@
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
   --color-text-muted: #94a3b8;
+
+  /* Chart series tokens — separate from the brand palette above.
+     #0F4C81 fails the dataviz validator's lightness band for categorical
+     use, so charts draw from this validated pair instead of --color-primary. */
+  --chart-series-1: #2a78d6;
+  --chart-series-2: #1baf7a;
+  --chart-surface: #fcfcfb;
 }
 
 .dark {
@@ -30,6 +37,10 @@
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #cbd5e1;
   --color-text-muted: #64748b;
+
+  --chart-series-1: #3987e5;
+  --chart-series-2: #199e70;
+  --chart-surface: #1a1a19;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,6 +57,10 @@
     --color-text-primary: #f1f5f9;
     --color-text-secondary: #cbd5e1;
     --color-text-muted: #64748b;
+
+    --chart-series-1: #3987e5;
+    --chart-series-2: #199e70;
+    --chart-surface: #1a1a19;
   }
 }
 

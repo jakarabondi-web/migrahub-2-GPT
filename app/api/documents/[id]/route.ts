@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/prisma";
 import { deleteDocumentFile } from "@/lib/document-storage";
+import { logAudit } from "@/lib/audit-log";
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -25,6 +26,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   await deleteDocumentFile(document.storagePath);
   await prisma.document.delete({ where: { id } });
+
+  await logAudit({
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    action: "document.deleted",
+    targetType: "Document",
+    targetId: id,
+    metadata: { name: document.name, category: document.category },
+  });
 
   return NextResponse.json({ success: true, message: "Document removed." });
 }

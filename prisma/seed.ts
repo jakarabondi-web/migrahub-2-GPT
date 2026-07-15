@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { FLAG_DEFINITIONS } from "../lib/feature-flags";
 
 const prisma = new PrismaClient();
 
@@ -132,6 +133,15 @@ async function main() {
     }
   }
   console.log(`Seeded ${JOBS.length} jobs.`);
+
+  for (const [key, def] of Object.entries(FLAG_DEFINITIONS)) {
+    await prisma.featureFlag.upsert({
+      where: { key },
+      create: { key, name: def.name, description: def.description, enabled: true },
+      update: {},
+    });
+  }
+  console.log(`Seeded ${Object.keys(FLAG_DEFINITIONS).length} feature flags (all on).`);
 
   const adminEmail = "admin@migrahub.dev";
   const adminPassword = "admin12345";
