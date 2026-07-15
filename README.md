@@ -93,13 +93,16 @@ case + add-case form), My Career (real jobs + deterministic match scoring +
 save + apply), My Documents (real upload/download/delete), My Community
 (real posts, auth-gated posting), Settings, the employer portal (company
 profile, job posting, applicant pipeline with status workflow), and the
-admin portal (live platform stats, Users, Companies).
+full admin portal (live platform stats, Users, Companies, Reports, Feature
+Flags that actually gate behavior at the API layer — not just the UI — and
+an Audit Log covering every security-relevant write).
 
 Still mock: My Assistant has canned answers — needs an LLM provider/API key
 to become real, deliberately deferred.
 
 Not started (all deliberately deferred pending API keys/provider choices):
-billing/payments, real USCIS status polling (cases are user-entered, not
+billing/payments (and the admin Subscriptions view that depends on it),
+system health monitoring, real USCIS status polling (cases are user-entered, not
 yet synced against a live USCIS source). Also not built: admin
 Reports/Subscriptions/Feature Flags/System Health/Audit Logs (Subscriptions
 depends on billing; the rest don't need external APIs and are reasonable
