@@ -20,25 +20,34 @@ app/
   page.tsx                    marketing homepage
   (auth)/login, register      auth screens
   onboarding/                 5-step onboarding wizard
-  (app)/dashboard             authenticated shell + dashboard, My Journey,
+  (app)/dashboard             candidate shell + dashboard, My Journey,
                                My Career, My Documents, My Assistant,
                                My Community, Settings
+  employer/                   employer shell + dashboard, Company Profile,
+                               Jobs, Applicants
   api/
     auth/[...nextauth]        NextAuth credentials provider
-    auth/register             account creation (bcrypt-hashed passwords)
+    auth/register             account creation (candidate or employer)
     onboarding                writes onboarding answers to the DB
     cases                     create/list a user's immigration cases
-    jobs, jobs/[id]/save      job listing + match score + save toggle
+    jobs, jobs/[id]/save,
+    jobs/[id]/apply            job listing + match score + save + apply
+    company                   employer's own company profile
+    employer/jobs              post/list jobs owned by the caller's company
+    employer/applicants,
+    employer/applicants/[id]   list + update status for the caller's own
+                               applicants (ownership-checked, not just
+                               role-checked)
 components/
   ui/                         atoms — Button, Card, Badge, Input, Select,
                                Switch, EmptyState, LibertyMark
   marketing/                  molecules/organisms for the homepage
   auth/                       AuthCard, LoginForm, SocialLoginButton
   onboarding/                 OnboardingWizard, StepIndicator
-  navigation/                 SidebarNav, TopNavigation
+  navigation/                 SidebarNav, EmployerSidebarNav, TopNavigation
   dashboard/                  DashboardHeader, JourneyProgress,
                                NextActionCard, CaseStatusCard, AIInsightCard
-  career/, documents/, assistant/, community/, journey/
+  career/, documents/, assistant/, community/, journey/, employer/
 lib/
   auth-options.ts             NextAuth config (credentials + JWT sessions)
   prisma.ts                   Prisma client singleton
@@ -78,13 +87,16 @@ way.
 
 ## Status
 
-Real, backed by the DB: auth (register/login/logout, route gating),
-onboarding, My Journey (real case + add-case form), My Career (real jobs +
-deterministic match scoring + save), My Documents (real upload/download/
-delete), My Community (real posts, auth-gated posting), Settings.
+Real, backed by the DB: auth (register/login/logout, route gating, two
+account types), onboarding, My Journey (real case + add-case form), My
+Career (real jobs + deterministic match scoring + save + apply), My
+Documents (real upload/download/delete), My Community (real posts,
+auth-gated posting), Settings, and the employer portal (company profile,
+job posting, applicant pipeline with status workflow).
 
 Still mock: My Assistant has canned answers — needs an LLM provider/API key
 to become real, deliberately deferred.
 
-Not started: employer portal, billing, admin, real USCIS status polling
-(cases are user-entered, not yet synced against a live USCIS source).
+Not started: billing (needs a payment provider/API key — same deferral as
+the assistant), admin portal, real USCIS status polling (cases are
+user-entered, not yet synced against a live USCIS source).
