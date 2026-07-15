@@ -25,6 +25,8 @@ model User {
   preferences Preferences?
   savedJobs   SavedJob[]
   documents   Document[]
+  posts       CommunityPost[]
+  replies     CommunityReply[]
 }
 
 // A user's USCIS case. Onboarding creates the first one (skippable);
@@ -106,4 +108,27 @@ model Document {
   createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  authorId  String
+  title     String
+  body      String
+  group     String
+  createdAt DateTime @default(now())
+
+  author  User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies CommunityReply[]
+}
+
+model CommunityReply {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
