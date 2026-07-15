@@ -23,6 +23,7 @@ model User {
   cases       ImmigrationCase[]
   profile     CandidateProfile?
   preferences Preferences?
+  savedJobs   SavedJob[]
 }
 
 // A user's USCIS case. Onboarding creates the first one (skippable);
@@ -61,4 +62,31 @@ model Preferences {
   theme               String  @default("system")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  title        String
+  company      String
+  location     String
+  salaryMin    Int
+  salaryMax    Int
+  sponsorship  Boolean  @default(false)
+  remote       Boolean  @default(false)
+  industry     String
+  createdAt    DateTime @default(now())
+
+  savedBy SavedJob[]
+}
+
+// Join table for the "Save Job" action from the API spec (POST /jobs/:id/save).
+model SavedJob {
+  id     String @id @default(cuid())
+  userId String
+  jobId  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
 }
