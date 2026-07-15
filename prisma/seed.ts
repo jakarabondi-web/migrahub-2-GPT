@@ -133,6 +133,21 @@ async function main() {
   }
   console.log(`Seeded ${JOBS.length} jobs.`);
 
+  const adminEmail = "admin@migrahub.dev";
+  const adminPassword = "admin12345";
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    create: {
+      name: "MigraHub Admin",
+      email: adminEmail,
+      passwordHash: await bcrypt.hash(adminPassword, 12),
+      role: "admin",
+      onboardingComplete: true,
+    },
+    update: {},
+  });
+  console.log(`Seeded admin account: ${adminEmail} / ${adminPassword} (local dev only).`);
+
   const passwordHash = await bcrypt.hash(`seed-${Date.now()}-not-a-real-login`, 4);
   const authorIdByName = new Map<string, string>();
 

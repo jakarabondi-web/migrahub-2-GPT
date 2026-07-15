@@ -10,7 +10,8 @@ export function TopNavigation() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const userName = session?.user?.name ?? "";
-  const settingsHref = session?.user?.role === "employer" ? "/employer/company" : "/dashboard/settings";
+  const role = session?.user?.role;
+  const settingsHref = role === "employer" ? "/employer/company" : "/dashboard/settings";
   const initials = userName
     .split(" ")
     .map((part) => part[0])
@@ -65,15 +66,17 @@ export function TopNavigation() {
               {session?.user?.email}
             </p>
             <div className="my-1 h-px bg-border" />
-            <Link
-              href={settingsHref}
-              role="menuitem"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 rounded-button px-3 py-2 text-small text-text-secondary hover:bg-background hover:text-text-primary"
-            >
-              <Settings className="h-4 w-4" aria-hidden="true" />
-              {session?.user?.role === "employer" ? "Company Profile" : "Settings"}
-            </Link>
+            {role !== "admin" && (
+              <Link
+                href={settingsHref}
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 rounded-button px-3 py-2 text-small text-text-secondary hover:bg-background hover:text-text-primary"
+              >
+                <Settings className="h-4 w-4" aria-hidden="true" />
+                {role === "employer" ? "Company Profile" : "Settings"}
+              </Link>
+            )}
             <button
               type="button"
               role="menuitem"
