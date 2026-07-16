@@ -93,7 +93,7 @@ export function SignupsChart({ points }: { points: SignupsChartPoint[] }) {
           role="img"
           aria-labelledby={titleId}
         >
-          <title id={titleId}>Daily signups, candidates vs employers, last {points.length} days</title>
+          <title id={titleId}>{`Daily signups, candidates vs employers, last ${points.length} days`}</title>
 
           {[0, 0.5, 1].map((t) => (
             <line
